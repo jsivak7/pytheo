@@ -13,6 +13,7 @@ ase = "^3.23.0"
 numpy = "~1.26"
 icet = "^3.0"
 mp-api = "^0.42.2"
+custodian = "^2024.10.15"
 
 
 [build-system]
