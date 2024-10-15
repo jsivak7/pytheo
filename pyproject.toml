@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "pytheo"
+version = "0.1.0"
+description = "Python Toolkit for High Entropy Oxides"
+authors = ["Jacob Sivak <jacobsivak7@gmail.com>"]
+readme = "README.md"
+packages = [{include = "pytheo", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+pymatgen = "^2024.10.3"
+ase = "^3.23.0"
+numpy = "~1.26"
+icet = "^3.0"
+mp-api = "^0.42.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
