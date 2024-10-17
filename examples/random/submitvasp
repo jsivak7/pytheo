@@ -6,7 +6,7 @@
 #SBATCH --partition=open
 #SBATCH --output=vasp.out
 #SBATCH --error=vasp.err
-#SBATCH --job-name=MgO
+#SBATCH --job-name=random
 #SBATCH --constraint=icelake
 
 export UCX_TLS=all

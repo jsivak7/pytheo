@@ -1,8 +1,9 @@
-from pytheo.structure import read, write, decorate_randomly, make_supercell
+from pytheo.utils import read, write
+from pytheo.structure.generation import make_supercell, make_random
 
 unitcell = read("MgO.poscar")
 
-random = decorate_randomly(
+random = make_random(
     unitcell,
     (10, 5, 5),
     chemical_symbols=[

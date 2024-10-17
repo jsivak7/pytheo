@@ -28,7 +28,7 @@ step1 = VaspJob(
 )
 
 step2 = VaspJob(
-    vasp_cmd=vasp_cmd,
+    vasp_cmd=["srun", "vasp_std"],
     final=False,
     suffix=".2",
     settings_override=[
@@ -45,7 +45,7 @@ step2 = VaspJob(
 )
 
 step3 = VaspJob(
-    vasp_cmd=vasp_cmd,
+    vasp_cmd=["srun", "vasp_std"],
     final=True,
     settings_override=[
         {"file": "CONTCAR", "action": {"_file_copy": {"dest": "POSCAR"}}},

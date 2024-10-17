@@ -173,9 +173,9 @@ python cstdn.py"""
         write_runvasp.write(submitvasp)
 
 
-def write_custodian_relax(output_path: str, kspacing=0.25, half_kpts_first_relax=True):
+def write_custodian_relax(output_path: str, kspacing=0.25, half_kmesh_first_relax=True):
 
-    if half_kpts_first_relax == True:
+    if half_kmesh_first_relax == True:
         cstdn_script = f"""kspacing_initial = {kspacing*2}\nkspacing = {kspacing}\n\n"""
     else:
         cstdn_script = f"""kspacing_initial = {kspacing}\n,kspacing = {kspacing}\n\n"""
