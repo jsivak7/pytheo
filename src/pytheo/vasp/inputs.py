@@ -67,7 +67,7 @@ def make_relax(
 
 # it assumed that you are using custodian here, which I highly recommend for error handling
 # I feel that this is overly complicated, but will leave for now and adjust in the future...
-def write_psu_roar_collab_submission(
+def write_psu_submission(
     name: str,
     output_path: str,
     type: str,
