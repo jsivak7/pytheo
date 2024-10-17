@@ -15,6 +15,7 @@ LCHARG: True
 LWAVE: True
 TIME: 0.2 # 1/2 default to assist in electronic convergence
 KPAR: 1
+KSPACING: 0.25
 MAGMOM: {
   "Mg": 0,
   "Ca": 0,

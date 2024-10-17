@@ -1,16 +1,16 @@
 # parameters that differ from pymatgen MPScanRelaxSet
 
 ALGO: All
-EDIFF: 1e-05
-EDIFFG: -0.020
+EDIFF: 1e-06
+EDIFFG: -0.010
 ISYM: 0 # best to be used throughout calculations
-ISIF: 3
+ISIF: 3 # full relax
 ISMEAR: 0
 SIGMA: 0.05
 NSW: 250
 NELM: 500
 POTIM: 0.25 # 1/2 default for smoother atomic relaxation
-NCORE: 32 # for basic cores on PSU Roar Collab
+NCORE: 32 # for basic cores on PSU RC cluster, seems 1/2 cpu per node works well
 LCHARG: True
 LWAVE: True
 LELF: False
@@ -18,6 +18,7 @@ LVTOT: False
 LAECHG: False
 TIME: 0.2 # 1/2 default to assist in electronic convergence
 KPAR: 1
+KSPACING: 0.25
 MAGMOM: {
   "Mg": 0,
   "Ca": 0,
@@ -29,9 +30,6 @@ MAGMOM: {
   "Ni": 5,
   "Cu": 5,
   "Zn": 0,
-  "Ge": 5,
-  "Sn": 5,
-  "Sb": 5,
 
   "Sr": 0,
   "La": 0,

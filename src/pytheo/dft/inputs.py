@@ -6,7 +6,6 @@ from ase import Atoms
 def make_relax(
     struc: Atoms,
     output_path: str,
-    kpt_mesh: tuple,
     user_incar_changes=None,
     functional="r2scan",
 ):
@@ -46,19 +45,10 @@ def make_relax(
     ):  # only update INCAR settings if user asks for changes
         incar_settings.update(user_incar_changes)
 
-    kpoints = Kpoints.from_dict(
-        {
-            "comment": "KPOINTS",
-            "generation_style": "Gamma",
-            "kpoints": [kpt_mesh],
-        }
-    )
-
     if functional == "pbe":
         calc = MPRelaxSet(
             structure=s,
             user_incar_settings=incar_settings,
-            user_kpoints_settings=kpoints,
             user_potcar_functional="PBE",
             sort_structure=True,
         )
@@ -66,7 +56,6 @@ def make_relax(
         calc = MPScanRelaxSet(
             structure=s,
             user_incar_settings=incar_settings,
-            user_kpoints_settings=kpoints,
             user_potcar_functional="PBE_54",
             sort_structure=True,
         )
@@ -162,7 +151,7 @@ python cstdn.py"""
 #SBATCH --ntasks-per-node={cpu}
 #SBATCH --mem-per-cpu={mem_per_cpu}
 #SBATCH --time={hours}:00:00
-#SBATCH --partition={partition}
+#SBATCH --partition=open
 #SBATCH --output=vasp.out
 #SBATCH --error=vasp.err
 #SBATCH --job-name={name}
@@ -182,3 +171,69 @@ python cstdn.py"""
 
     with open(f"{output_path}/submitvasp", "w") as write_runvasp:
         write_runvasp.write(submitvasp)
+
+
+def write_custodian_relax(output_path: str, kspacing=0.25, half_kpts_first_relax=True):
+
+    if half_kpts_first_relax == True:
+        cstdn_script = f"""kspacing_initial = {kspacing*2}\nkspacing = {kspacing}\n\n"""
+    else:
+        cstdn_script = f"""kspacing_initial = {kspacing}\n,kspacing = {kspacing}\n\n"""
+
+    cstdn_script += """import os
+from custodian.custodian import Custodian
+from custodian.vasp.handlers import VaspErrorHandler
+from custodian.vasp.jobs import VaspJob
+
+subset = list(VaspErrorHandler.error_msgs.keys())
+subset.remove("algo_tet")
+
+handlers = [VaspErrorHandler(errors_subset_to_catch=subset)]
+
+step1 = VaspJob(
+    vasp_cmd=["srun", "vasp_std"],
+    final=False,
+    suffix=".1",
+    settings_override=[
+        {
+            "dict": "INCAR",
+            "action": {
+                "_set": {
+                    "KSPACING": kspacing_initial
+                }
+            },
+        },
+    ],
+)
+
+step2 = VaspJob(
+    vasp_cmd=["srun", "vasp_std"],
+    final=False,
+    suffix=".2",
+    settings_override=[
+        {
+            "dict": "INCAR",
+            "action": {
+                "_set": {
+                    "KSPACING": kspacing
+                }
+            },
+        },
+        {"file": "CONTCAR", "action": {"_file_copy": {"dest": "POSCAR"}}},
+    ],
+)
+
+step3 = VaspJob(
+    vasp_cmd=["srun", "vasp_std"],
+    final=True,
+    settings_override=[
+        {"file": "CONTCAR", "action": {"_file_copy": {"dest": "POSCAR"}}},
+    ],
+)
+
+
+jobs = [step1, step2, step3]
+c = Custodian(handlers, jobs, max_errors=5)
+c.run()"""
+    with open(f"{output_path}/cstdn.py", "w+") as f:
+        f.writelines(cstdn_script)
