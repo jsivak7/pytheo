@@ -1,1 +1,0 @@
-Unless specified otherwise, assume that the Vienna Ab-initio Software Package (VASP) is used here.

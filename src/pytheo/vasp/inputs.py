@@ -45,18 +45,18 @@ def make_relax(
     ):  # only update INCAR settings if user asks for changes
         incar_settings.update(user_incar_changes)
 
-    if functional == "pbe":
-        calc = MPRelaxSet(
-            structure=s,
-            user_incar_settings=incar_settings,
-            user_potcar_functional="PBE",
-            sort_structure=True,
-        )
-    elif functional == "r2scan":
+    if functional == "r2scan":
         calc = MPScanRelaxSet(
             structure=s,
             user_incar_settings=incar_settings,
             user_potcar_functional="PBE_54",
+            sort_structure=True,
+        )
+    elif functional == "pbe":
+        calc = MPRelaxSet(
+            structure=s,
+            user_incar_settings=incar_settings,
+            user_potcar_functional="PBE",
             sort_structure=True,
         )
     else:
@@ -82,7 +82,7 @@ def write_psu_roar_collab_submission(
 
     Args:
         name (str): job name
-        output_path (_type_): relative path to write submission file
+        output_path (str): relative path to write submission file
         type (str): type of calculation for writing correct slurm submission ["basic", "standard", "open"]
         nodes (int, optional): number of nodes. Defaults to 1.
         cpu (int, optional): number of cpu per node. Defaults to 64.
@@ -174,7 +174,13 @@ python cstdn.py"""
 
 
 def write_custodian_relax(output_path: str, kspacing=0.25, half_kmesh_first_relax=True):
+    """Write a generic relaxation script for calculation workflow and error handling using Custodian (https://github.com/materialsproject/custodian).
 
+    Args:
+        output_path (str): relative path to write submission file
+        kspacing (float, optional): K-point mesh spacing with VASP KSPACING tag (https://www.vasp.at/wiki/index.php/KSPACING). Defaults to 0.25.
+        half_kmesh_first_relax (bool, optional): Use more sparse k-mesh for initial relax. Defaults to True.
+    """
     if half_kmesh_first_relax == True:
         cstdn_script = f"""kspacing_initial = {kspacing*2}\nkspacing = {kspacing}\n\n"""
     else:

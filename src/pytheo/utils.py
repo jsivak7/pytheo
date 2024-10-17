@@ -1,7 +1,6 @@
 # general utilities
 
 from ase import Atoms
-from pymatgen.core import Structure
 
 
 def read(file_path: str):
