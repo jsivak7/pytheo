@@ -16,7 +16,7 @@ LWAVE: True
 LELF: False
 LVTOT: False
 LAECHG: False
-TIME: 0.2 # 1/2 default to assist in electronic convergence
+TIME: 0.1 # 1/4 default to assist in electronic convergence, usually needed for disordered systems for smooth convergence
 KPAR: 1
 KSPACING: 0.25
 MAGMOM: {
