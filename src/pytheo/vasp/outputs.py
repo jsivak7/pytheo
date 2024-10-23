@@ -66,7 +66,7 @@ def get_lattice(run="vasprun.xml"):
         run (str, optional): relative location for vasprun.xml file. Defaults to "vasprun.xml".
 
     Returns:
-        tuple: (volume, a, b, c)
+        tuple: (volume, a, b, c, alpha, beta, gamma)
     """
     from pymatgen.io.vasp import Vasprun
     import numpy as np
@@ -76,8 +76,19 @@ def get_lattice(run="vasprun.xml"):
     a = v.final_structure.lattice.a
     b = v.final_structure.lattice.b
     c = v.final_structure.lattice.c
+    alpha = v.final_structure.lattice.alpha
+    beta = v.final_structure.lattice.beta
+    gamma = v.final_structure.lattice.gamma
 
-    return (np.round(volume, 2), np.round(a, 4), np.round(b, 4), np.round(c, 4))
+    return (
+        np.round(volume, 2),
+        np.round(a, 4),
+        np.round(b, 4),
+        np.round(c, 4),
+        np.round(alpha, 2),
+        np.round(beta, 2),
+        np.round(gamma, 2),
+    )
 
 
 def get_bandgap(run="vasprun.xml"):
