@@ -3,7 +3,7 @@
 from ase import Atoms
 
 
-def read(file_path: str):
+def read_structure(file_path: str):
     """Read in structure file to ASE Atoms Object
 
     Args:
@@ -18,7 +18,7 @@ def read(file_path: str):
     return s
 
 
-def write(struc: Atoms, file_path: str, overwrite=False):
+def write_structure(struc: Atoms, file_path: str, overwrite=False):
     """Write ASE Atoms object to structure file
     NOTE that always writes "direct" coordinates
 

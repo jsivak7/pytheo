@@ -1,10 +1,10 @@
 # parameters that differ from pymatgen MPRelaxSet
   
 ALGO: All
-EDIFF: 1e-05
-EDIFFG: -0.020
-ISYM: 0
-ISIF: 3
+EDIFF: 1e-06
+EDIFFG: -0.010
+ISYM: 0 # best to be used throughout calculations
+ISIF: 3 # full relax
 ISMEAR: 0
 SIGMA: 0.05
 NSW: 250

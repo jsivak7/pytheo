@@ -2,6 +2,7 @@
 # these are from the latest version of the previous private pytheos package I started months ago...
 
 
+# TODO
 def get_octahedral_bondangles(
     struc_path: str,
     bsite_cations: tuple,
@@ -110,6 +111,7 @@ def get_octahedral_bondangles(
     return avg_bondangle
 
 
+# TODO
 def get_lattice_parameters(struc="output.vasp"):
     """
     Gets lattice parmeters for a CONTCAR structure
@@ -131,6 +133,7 @@ def get_lattice_parameters(struc="output.vasp"):
     return lattice_parameters
 
 
+# TODO
 def get_firstNN_bonds(struc_path="output.vasp", radius=3.00, anion="O", num_NNs=6):
     """
     Gets all first nearest neighbor bond lengths and exports them as a 1d .csv file.

@@ -1,6 +1,11 @@
 from ase import Atoms
 
 
+def make_unitcell(crystal_structure: str):
+    # TODO should make with ASE.io.build.bulk for specific crystal structures of interest (rocksalt, spinel, perovskite, etc.)
+    return crystal_structure
+
+
 def make_supercell(struc: Atoms, dimensions: tuple):
     """Make supercell from ASE Atoms object
 
