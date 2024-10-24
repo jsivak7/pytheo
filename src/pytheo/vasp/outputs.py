@@ -37,7 +37,6 @@ def get_total_energy(run="vasprun.xml"):
 
     v = Vasprun(run)
     en_tot = v.final_energy
-    print("\nenergy = {:.6f}".format(en_tot))
     return en_tot
 
 
