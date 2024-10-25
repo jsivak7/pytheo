@@ -221,8 +221,7 @@ step1 = VaspJob(
 
 step2 = VaspJob(
     vasp_cmd=["srun", "vasp_std"],
-    final=False,
-    suffix=".2",
+    final=True,
     settings_override=[
         {
             "dict": "INCAR",
