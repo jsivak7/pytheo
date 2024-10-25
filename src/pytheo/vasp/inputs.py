@@ -183,7 +183,7 @@ python cstdn.py"""
 
 
 def write_custodian_relax(output_path: str, kspacing=0.25, half_kmesh_first_relax=True):
-    """Write a generic relaxation script for calculation workflow and error handling using Custodian (https://github.com/materialsproject/custodian).
+    """Write a generic double relaxation script for calculation workflow and error handling using Custodian (https://github.com/materialsproject/custodian).
 
     Args:
         output_path (str): relative path to write submission file
@@ -201,8 +201,6 @@ from custodian.vasp.handlers import VaspErrorHandler
 from custodian.vasp.jobs import VaspJob
 
 subset = list(VaspErrorHandler.error_msgs.keys())
-subset.remove("algo_tet")
-
 handlers = [VaspErrorHandler(errors_subset_to_catch=subset)]
 
 step1 = VaspJob(
@@ -238,17 +236,9 @@ step2 = VaspJob(
     ],
 )
 
-step3 = VaspJob(
-    vasp_cmd=["srun", "vasp_std"],
-    final=True,
-    settings_override=[
-        {"file": "CONTCAR", "action": {"_file_copy": {"dest": "POSCAR"}}},
-    ],
-)
 
-
-jobs = [step1, step2, step3]
-c = Custodian(handlers, jobs, max_errors=5)
+jobs = [step1, step2]
+c = Custodian(handlers, jobs, max_errors=3)
 c.run()"""
     with open(f"{output_path}/cstdn.py", "w+") as f:
         f.writelines(cstdn_script)
