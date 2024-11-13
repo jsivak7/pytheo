@@ -1,5 +1,127 @@
-# I have optimized most of these functions elsewhere so be careful here...
-# these are from the latest version of the previous private pytheos package I started months ago...
+# I think I have somewhat optimized versions of these somewhere...???
+
+
+def get_firstNN_bonds(
+    atom_num: int, struc_path="output.vasp", radius=3.00, anion="O", num_NNs=6
+):
+    """
+    Gets all first nearest neighbor (NN) bond lengths for a specified cation with surrounding anions within a structure
+    - a flexible scheme has been implemented that allows for consistent NN extraction even for highly distorted lattices
+
+    Args:
+    - atom_num (int): atom number of interest
+    - struc_path (string): relative path to structure file
+        - default = 'output.vasp'
+    - radius (float): radius in Angstroms to search for NNs
+        - default = 3.00
+    - anion (string): anion element
+        - default = 'O'
+    - num_NNs (int): number of NNs to extract
+        - default = 6 (octahedral)
+
+    Returns:
+        1d list of first near-neighbor bond lengths
+    """
+
+    from pymatgen.core.structure import Structure
+    from pymatgen.core import Composition
+    import numpy as np
+
+    struc = Structure.from_file(struc_path)
+
+    print(f"\natom number {atom_num} ({struc[atom_num].species})")
+
+    # variables related to the scheme I have set up for always getting the desired number of NN bonds
+    shift = 0.01  # Angstroms - initial guess of how much to shift radius and try to find desired number of NNs if no success initially
+    counter = 0
+    max_counter = 100  # max number of 'shifts' before decreasing shift value
+
+    if struc[atom_num].species != Composition(anion):  # check to make sure that
+        print("radius = {:.6f} Angstroms".format(radius))
+        current_atom_neighbors = struc.get_all_neighbors_py(r=radius)[atom_num]
+        indices = []
+        distances = []
+
+        for nn in current_atom_neighbors:
+            if nn.species == Composition(anion):  # only want anion since 1st NN
+                indices.append(nn.index)
+                distances.append(nn.nn_distance)
+
+        while len(indices) != num_NNs:
+            if counter >= max_counter:
+                counter = 0
+            counter += 1
+
+            if len(indices) < num_NNs:
+                indices = []
+                distances = []
+                radius += shift
+                print("radius = {:.6f} Angstroms".format(radius))
+                current_atom_neighbors = struc.get_all_neighbors_py(r=radius)[atom_num]
+
+                for nn in current_atom_neighbors:
+                    if nn.species == Composition(anion):  # only want anion since 1st NN
+                        indices.append(nn.index)
+                        distances.append(nn.nn_distance)
+                print("\t--> {} NNs".format(len(indices)))
+
+                if (
+                    counter >= max_counter
+                ):  # only do the allowed amount of trials at each radius before making smaller
+                    shift = shift * 0.05
+
+            elif len(indices) > num_NNs:
+                indices = []
+                distances = []
+                radius -= shift
+                print("radius = {:.6f} Angstroms".format(radius))
+                current_atom_neighbors = struc.get_all_neighbors_py(r=radius)[atom_num]
+
+                for nn in current_atom_neighbors:
+                    if nn.species == Composition(anion):  # only want anion since 1st NN
+                        indices.append(nn.index)
+                        distances.append(nn.nn_distance)
+                print("\t--> {} NNs".format(len(indices)))
+
+                if (
+                    counter >= max_counter
+                ):  # only do the allowed amount of trials at each radius before making smaller
+                    shift = shift * 0.05
+
+        if (
+            len(indices) != num_NNs
+        ):  # fail safe for if this still does not work to due to large deviations from octahedral coordination
+            raise ValueError(
+                "Number of 1st NN does not equal {}!\n\t--> {}".format(
+                    num_NNs, len(indices)
+                )
+            )
+
+    else:  # extra fail safe if the automatic scheme above does not work properly
+        print("Current atom is an anion ({})!".format(anion))
+
+    return distances
+
+
+def get_diffraction_pattern(struc_path: str, scaled=True):
+    """
+    Gets simulated diffraction pattern for a structure file using Pymatgen
+
+    Args:
+        struc_path (str): relative path to structure file
+        scaled (bool, optional): if intensities should be scaled so that max=100. Defaults to True.
+
+    Returns:
+        dict: 2theta values with corresponding intensities
+    """
+    from pymatgen.core.structure import Structure
+    from pymatgen.analysis.diffraction.xrd import XRDCalculator
+
+    struc = Structure.from_file(struc_path)
+    calculator = XRDCalculator()
+    pattern = calculator.get_pattern(struc, scaled=scaled)
+    data = {"2theta": pattern.x, "intensity": pattern.y}
+    return data
 
 
 # TODO
@@ -131,145 +253,3 @@ def get_lattice_parameters(struc="output.vasp"):
     print("b = {:.4f} \u212b".format(lattice_parameters[1]))
     print("c = {:.4f} \u212b".format(lattice_parameters[2]))
     return lattice_parameters
-
-
-# TODO
-def get_firstNN_bonds(struc_path="output.vasp", radius=3.00, anion="O", num_NNs=6):
-    """
-    Gets all first nearest neighbor bond lengths and exports them as a 1d .csv file.
-    - a flexible scheme has been implemented that allows for consistent NN extraction even for highly distorted lattices
-
-    Args:
-    - struc_path (string): relative path to structure file
-        - default = 'output.vasp'
-    - radius (float): radius in Angstroms to search for NNs
-        - default = 3.00
-    - anion (string): anion element
-        - default = 'O'
-    - num_NNs (int): number of NNs to extract
-        - default = 6 (octahedral)
-
-    Returns:
-        1d list of bond lengths
-    """
-
-    from pymatgen.core.structure import Structure
-    from pymatgen.core import Composition
-    import numpy as np
-
-    all_distances = []
-
-    struc = Structure.from_file(struc_path)
-
-    for atom_num in range(int(len(struc))):  # go through all atoms in the structure
-
-        print("\natom number {}".format(atom_num))
-        print("species {}".format(struc[atom_num].species))
-
-        # all of these variables are related to the scheme I have set up for always getting 6 NN octahedral bonds
-        shift = 0.01  # Angstroms - initial guess of how much to shift radius and try to find 6 octahedral NNs if no success initially
-        counter = 0
-        max_counter = 100  # max number of 'shifts' before decreasing shift value
-
-        if struc[atom_num].species != Composition(
-            anion
-        ):  # only move forward for atoms that are not our anion
-            print("radius = {:.6f} Angstroms".format(radius))
-            current_atom_neighbors = struc.get_all_neighbors_py(r=radius)[atom_num]
-            indices = []
-            distances = []
-
-            for nn in current_atom_neighbors:
-                if nn.species == Composition(anion):  # only want anion since 1st NN
-                    indices.append(nn.index)
-                    distances.append(nn.nn_distance)
-
-            while len(indices) != num_NNs:
-                if counter >= max_counter:
-                    counter = 0
-                counter += 1
-
-                if len(indices) < num_NNs:
-                    indices = []
-                    distances = []
-                    radius += shift
-                    print("radius = {:.6f} Angstroms".format(radius))
-                    current_atom_neighbors = struc.get_all_neighbors_py(r=radius)[
-                        atom_num
-                    ]
-
-                    for nn in current_atom_neighbors:
-                        if nn.species == Composition(
-                            anion
-                        ):  # only want anion since 1st NN
-                            indices.append(nn.index)
-                            distances.append(nn.nn_distance)
-                    print("\t--> {} NNs".format(len(indices)))
-
-                    if (
-                        counter >= max_counter
-                    ):  # only do the allowed amount of trials at each radius before making smaller
-                        shift = shift * 0.05
-
-                elif len(indices) > num_NNs:
-                    indices = []
-                    distances = []
-                    radius -= shift
-                    print("radius = {:.6f} Angstroms".format(radius))
-                    current_atom_neighbors = struc.get_all_neighbors_py(r=radius)[
-                        atom_num
-                    ]
-
-                    for nn in current_atom_neighbors:
-                        if nn.species == Composition(
-                            anion
-                        ):  # only want anion since 1st NN
-                            indices.append(nn.index)
-                            distances.append(nn.nn_distance)
-                    print("\t--> {} NNs".format(len(indices)))
-
-                    if (
-                        counter >= max_counter
-                    ):  # only do the allowed amount of trials at each radius before making smaller
-                        shift = shift * 0.05
-
-            if (
-                len(indices) != num_NNs
-            ):  # fail safe for if this still does not work to due to large deviations from octahedral coordination
-                raise ValueError(
-                    "Number of 1st NN does not equal {}!\n\t--> {}".format(
-                        num_NNs, len(indices)
-                    )
-                )
-
-            # sort anion_indices and bond distances by anion_indices for consistent comparison between different supercells
-            anion_indices, distances = zip(*sorted(zip(anion_indices, distances)))
-            print(anion_indices, np.round(distances, 4))
-
-            all_distances.extend(distances)
-
-        else:  # extra fail safe if the automatic scheme does not work
-            print("Current atom is an anion ({})!".format(anion))
-
-    return all_distances
-
-
-def get_diffraction_pattern(struc_path: str, scaled=True):
-    """
-    Gets simulated diffraction pattern for a structure file using Pymatgen
-
-    Args:
-        struc_path (str): relative path to structure file
-        scaled (bool, optional): if intensities should be scaled so that max=100. Defaults to True.
-
-    Returns:
-        dict: 2theta values with corresponding intensities
-    """
-    from pymatgen.core.structure import Structure
-    from pymatgen.analysis.diffraction.xrd import XRDCalculator
-
-    struc = Structure.from_file(struc_path)
-    calculator = XRDCalculator()
-    pattern = calculator.get_pattern(struc, scaled=scaled)
-    data = {"2theta": pattern.x, "intensity": pattern.y}
-    return data
